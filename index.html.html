@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>오늘 뭐 먹지? — 나만의 찐맛집 기록장</title>
+  <!-- Tailwind CSS 로드 -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts (Noto Sans KR) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background-color: #FFFDF5;
+      color: #5C4B00;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    @keyframes popIn {
+      0% {
+        opacity: 0;
+        transform: scale(0.95) translateY(-6px);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+
+    .animate-pop {
+      animation: popIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-[#FFFDF5] text-[#5C4B00]">
+
+  <!-- 상단 파스텔 옐로우 헤더 -->
+  <header class="bg-gradient-to-br from-[#FFE066] to-[#FFF3BF] border-b border-[#F3D977] shadow-sm">
+    <div class="max-w-5xl mx-auto px-4 py-7 sm:py-9 text-center">
+      <div class="inline-flex items-center gap-1.5 bg-white/75 backdrop-blur-sm px-3.5 py-1 rounded-full text-xs sm:text-sm font-semibold text-[#6E5900] mb-3 border border-[#F5E08A]">
+        <span>🍋 광고 없는 나만의 찐맛집 아카이브</span>
+      </div>
+      <h1 class="text-2xl sm:text-4xl font-extrabold tracking-tight text-[#4A3B00] mb-2">
+        🍽️ 오늘 뭐 먹지?
+      </h1>
+      <p class="text-sm sm:text-base text-[#6E5900] max-w-md mx-auto">
+        직접 가본 찐맛집을 기록하고, 오늘 갈 식당을 가볍게 골라보세요.
+      </p>
+    </div>
+  </header>
+
+  <!-- 메인 컨테이너 -->
+  <main class="flex-1 max-w-5xl w-full mx-auto px-4 py-6 sm:py-8">
+
+    <!-- 첫 화면 모드 선택 버튼 영역 (랜덤 뽑기 vs 찐맛집 기록장) -->
+    <section aria-label="기능 모드 선택" class="mb-7">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 max-w-2xl mx-auto">
+        <button
+          id="modeBtnRandom"
+          type="button"
+          onclick="switchMode('random')"
+          class="flex items-center justify-center gap-2.5 py-4 px-5 rounded-2xl font-extrabold text-base sm:text-lg border-2 transition-all cursor-pointer shadow-sm bg-white border-[#F3D977] text-[#5C4B00] hover:bg-[#FFF9DB]"
+        >
+          <span class="text-xl">🎲</span>
+          <span>오늘 뭐 먹지? 랜덤 뽑기</span>
+        </button>
+
+        <button
+          id="modeBtnArchive"
+          type="button"
+          onclick="switchMode('archive')"
+          class="flex items-center justify-center gap-2.5 py-4 px-5 rounded-2xl font-extrabold text-base sm:text-lg border-2 transition-all cursor-pointer shadow-sm bg-white border-[#F3D977] text-[#5C4B00] hover:bg-[#FFF9DB]"
+        >
+          <span class="text-xl">📖</span>
+          <span>나만의 찐맛집 기록장</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- 초기 환영 안내 카드 (아무 모드도 선택하기 전 깔끔한 첫 화면) -->
+    <section
+      id="welcomeView"
+      class="max-w-2xl mx-auto bg-white border border-[#F3E299] rounded-3xl p-7 sm:p-10 text-center shadow-sm animate-pop"
+    >
+      <div class="w-16 h-16 bg-[#FFF3BF] text-3xl rounded-2xl flex items-center justify-center mx-auto mb-4 border border-[#FFE066]">
+        💛
+      </div>
+      <h2 class="text-xl sm:text-2xl font-extrabold text-[#4A3B00] mb-2">
+        원하는 기능을 선택해 주세요!
+      </h2>
+      <p class="text-sm sm:text-base text-[#7A6500] leading-relaxed mb-6">
+        메뉴가 고민될 때는 <strong>랜덤 뽑기</strong>로 바로 추천받고,<br class="hidden sm:inline" />
+        새 식당을 추가하거나 목록을 둘러보려면 <strong>찐맛집 기록장</strong>을 열어보세요.
+      </p>
+      <div class="inline-flex items-center gap-2 text-xs font-semibold bg-[#FFF9DB] text-[#6E5900] px-4 py-2 rounded-full border border-[#F3E299]">
+        <span>현재 저장된 나만의 맛집:</span>
+        <span id="welcomeTotalCount" class="font-extrabold text-[#4A3B00]">0곳</span>
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- [모드 1] 오늘 뭐 먹지? 랜덤 뽑기 화면 -->
+    <!-- ========================================================= -->
+    <section id="randomView" class="hidden max-w-2xl mx-auto animate-pop">
+      <div class="bg-white border border-[#F3E299] rounded-3xl p-6 sm:p-8 shadow-sm">
+        <div class="text-center mb-6">
+          <span class="inline-block bg-[#FFF3BF] text-[#5C4B00] text-xs font-bold px-3 py-1 rounded-full mb-2">
+            🎲 메뉴 결정 도우미
+          </span>
+          <h2 class="text-xl sm:text-2xl font-extrabold text-[#4A3B00]">
+            오늘 어디서 먹을까요?
+          </h2>
+          <p class="text-sm text-[#7A6500] mt-1">
+            원하는 음식 종류나 상황을 고른 뒤 버튼을 눌러보세요.
+          </p>
+        </div>
+
+        <!-- 랜덤 뽑기용 조건 선택 -->
+        <div class="bg-[#FFFDF5] border border-[#F5E6A8] rounded-2xl p-4 sm:p-5 mb-6 space-y-4">
+          <div>
+            <span class="block text-xs font-bold text-[#7A6500] mb-2">🍴 음식 카테고리 (선택)</span>
+            <div id="randomCatButtons" class="flex flex-wrap gap-2">
+              <button type="button" data-rcat="전체" class="rcat-btn bg-[#FFE066] text-[#4A3B00] border border-[#E6C23A] font-bold text-sm px-3.5 py-1.5 rounded-full transition-all cursor-pointer">전체</button>
+              <button type="button" data-rcat="한식" class="rcat-btn bg-white hover:bg-[#FFF9DB] text-[#6E5900] border border-[#EAD996] font-medium text-sm px-3.5 py-1.5 rounded-full transition-all cursor-pointer">한식</button>
+              <button type="button" data-rcat="일식" class="rcat-btn bg-white hover:bg-[#FFF9DB] text-[#6E5900] border border-[#EAD996] font-medium text-sm px-3.5 py-1.5 rounded-full transition-all cursor-pointer">일식</button>
+              <button type="button" data-rcat="양식" class="rcat-btn bg-white hover:bg-[#FFF9DB] text-[#6E5900] border border-[#EAD996] font-medium text-sm px-3.5 py-1.5 rounded-full transition-all cursor-pointer">양식</button>
+              <button type="button" data-rcat="카페·디저트" class="rcat-btn bg-white hover:bg-[#FFF9DB] text-[#6E5900] border border-[#EAD996] font-medium text-sm px-3.5 py-1.5 rounded-full transition-all cursor-pointer">카페·디저트</button>
+            </div>
+          </div>
+
+          <div>
+            <span class="block text-xs font-bold text-[#7A6500] mb-2">🏷️ 상황 태그 (선택)</span>
+            <div id="randomTagButtons" class="flex flex-wrap gap-2">
+              <button type="button" data-rtag="전체" class="rtag-btn bg-[#FFE066] text-[#4A3B00] border border-[#E6C23A] font-bold text-sm px-3.5 py-1.5 rounded-full transition-all cursor-pointer">전체</button>
+              <button type="button" data-rtag="혼밥" class="rtag-btn bg-white hover:bg-[#FFF9DB] text-[#6E5900] border border-[#EAD996] font-medium text-sm px-3.5 py-1.5 rounded-full transition-all cursor-pointer">#혼밥</button>
+              <button type="button" data-rtag="가성비" class="rtag-btn bg-white hover:bg-[#FFF9DB] text-[#6E5900] border border-[#EAD996] font-medium text-sm px-3.5 py-1.5 rounded-full transition-all cursor-pointer">#가성비</button>
+              <button type="button" data-rtag="분위기" class="rtag-btn bg-white hover:bg-[#FFF9DB] text-[#6E5900] border border-[#EAD996] font-medium text-sm px-3.5 py-1.5 rounded-full transition-all cursor-pointer">#분위기</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 추첨 실행 버튼 -->
+        <button
+          type="button"
+          onclick="pickRandomPlace()"
+          class="w-full bg-[#FFE066] hover:bg-[#FFD43B] active:scale-[0.99] text-[#4A3B00] border border-[#E6C23A] font-extrabold text-lg py-4 px-6 rounded-2xl shadow-sm transition-all cursor-pointer"
+        >
+          🎲 오늘의 맛집 뽑기!
+        </button>
+
+        <!-- 랜덤 뽑기 결과 카드 -->
+        <div
+          id="randomResultBox"
+          class="hidden mt-6 bg-[#FFF9DB] border-2 border-[#FFE066] rounded-2xl p-5 sm:p-6"
+          aria-live="polite"
+        >
+          <div class="flex items-center justify-between gap-2 mb-2">
+            <span class="inline-block bg-[#FFE066] text-[#4A3B00] text-xs font-extrabold px-3 py-1 rounded-full">
+              🎉 오늘의 추천 찐맛집!
+            </span>
+            <span id="randomCategoryBadge" class="text-xs font-bold text-[#7A6500] bg-white px-2.5 py-1 rounded-lg border border-[#F3E299]">
+              카테고리
+            </span>
+          </div>
+
+          <h3 id="randomName" class="text-2xl font-extrabold text-[#4A3B00] mt-2">
+            식당 이름
+          </h3>
+          <div id="randomRating" class="text-amber-500 text-sm font-bold mt-1">
+            ★★★★★
+          </div>
+          <p id="randomMenu" class="text-sm sm:text-base font-bold text-[#5C4B00] bg-white/80 rounded-xl px-3.5 py-2.5 mt-3 border border-[#F5E6A8]">
+            대표 메뉴 · 가격대
+          </p>
+          <p id="randomReview" class="text-sm text-[#6E5900] mt-3 leading-relaxed">
+            "한줄평"
+          </p>
+          <div id="randomTags" class="flex flex-wrap gap-1.5 mt-3"></div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mt-5">
+            <a
+              id="randomMapLink"
+              href="#"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex items-center justify-center gap-1.5 bg-[#4A3B00] hover:bg-[#332900] text-[#FFFDF5] text-sm font-bold py-3 px-4 rounded-xl transition-colors"
+            >
+              <span>📍 네이버 지도 검색</span>
+            </a>
+            <button
+              type="button"
+              onclick="pickRandomPlace()"
+              class="inline-flex items-center justify-center gap-1.5 bg-white hover:bg-[#FFFDF5] text-[#5C4B00] border border-[#E6C23A] text-sm font-bold py-3 px-4 rounded-xl transition-colors cursor-pointer"
+            >
+              <span>🔄 다른 곳 다시 뽑기</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- [모드 2] 나만의 찐맛집 기록장 화면 -->
+    <!-- ========================================================= -->
+    <section id="archiveView" class="hidden animate-pop">
+      <!-- 검색 및 필터 패널 -->
+      <div class="bg-white border border-[#F3E299] rounded-2xl p-4 sm:p-6 mb-6 shadow-sm">
+        <!-- 실시간 검색창 -->
+        <div class="mb-5">
+          <label for="searchInput" class="block text-xs font-bold text-[#7A6500] mb-2">
+            🔍 식당 이름 · 대표 메뉴 검색
+          </label>
+          <div class="relative">
+            <input
+              type="text"
+              id="searchInput"
+              placeholder="예: 국밥, 파스타, 돈카츠, 카페..."
+              oninput="handleSearch(this.value)"
+              class="w-full bg-[#FFFDF5] border border-[#EAD996] focus:border-[#D9B310] focus:bg-white focus:outline-none rounded-xl px-4 py-3 text-sm sm:text-base text-[#4A3B00] placeholder-[#A69446] transition-colors"
+            />
+            <button
+              id="clearSearchBtn"
+              type="button"
+              onclick="clearSearch()"
+              class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-xs bg-[#FFF3BF] hover:bg-[#FFE066] text-[#5C4B00] px-2.5 py-1 rounded-lg font-semibold cursor-pointer"
+            >
+              지우기
+            </button>
+          </div>
+        </div>
+
+        <!-- 음식 카테고리 필터 -->
+        <div class="mb-4">
+          <span class="block text-xs font-bold text-[#7A6500] mb-2">🍴 음식 카테고리 선택</span>
+          <div id="categoryButtons" class="flex flex-wrap gap-2">
+            <button type="button" data-cat="전체" class="cat-btn bg-[#FFE066] text-[#4A3B00] border border-[#E6C23A] font-bold text-sm px-4 py-2 rounded-full transition-all cursor-pointer">전체</button>
+            <button type="button" data-cat="한식" class="cat-btn bg-[#FFFDF5] hover:bg-[#FFF9DB] text-[#6E5900] border border-[#EAD996] font-medium text-sm px-4 py-2 rounded-full transition-all cursor-pointer">한식</button>
+            <button type="button" data-cat="일식" class="cat-btn bg-[#FFFDF5] hover:bg-[#FFF9DB] text-[#6E5900] border border-[#EAD996] font-medium text-sm px-4 py-2 rounded-full transition-all cursor-pointer">일식</button>
+            <button type="button" data-cat="양식" class="cat-btn bg-[#FFFDF5] hover:bg-[#FFF9DB] text-[#6E5900] border border-[#EAD996] font-medium text-sm px-4 py-2 rounded-full transition-all cursor-pointer">양식</button>
+            <button type="button" data-cat="카페·디저트" class="cat-btn bg-[#FFFDF5] hover:bg-[#FFF9DB] text-[#6E5900] border border-[#EAD996] font-medium text-sm px-4 py-2 rounded-full transition-all cursor-pointer">카페·디저트</button>
+          </div>
+        </div>
+
+        <!-- 상황 태그 필터 -->
+        <div>
+          <span class="block text-xs font-bold text-[#7A6500] mb-2">🏷️ 상황 태그 선택</span>
+          <div id="tagButtons" class="flex flex-wrap gap-2">
+            <button type="button" data-tag="전체" class="tag-btn bg-[#FFE066] text-[#4A3B00] border border-[#E6C23A] font-bold text-sm px-4 py-2 rounded-full transition-all cursor-pointer">전체</button>
+            <button type="button" data-tag="혼밥" class="tag-btn bg-[#FFFDF5] hover:bg-[#FFF9DB] text-[#6E5900] border border-[#EAD996] font-medium text-sm px-4 py-2 rounded-full transition-all cursor-pointer">#혼밥</button>
+            <button type="button" data-tag="가성비" class="tag-btn bg-[#FFFDF5] hover:bg-[#FFF9DB] text-[#6E5900] border border-[#EAD996] font-medium text-sm px-4 py-2 rounded-full transition-all cursor-pointer">#가성비</button>
+            <button type="button" data-tag="분위기" class="tag-btn bg-[#FFFDF5] hover:bg-[#FFF9DB] text-[#6E5900] border border-[#EAD996] font-medium text-sm px-4 py-2 rounded-full transition-all cursor-pointer">#분위기</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 맛집 추가 토글 및 입력 폼 -->
+      <div class="mb-7">
+        <button
+          id="toggleFormBtn"
+          type="button"
+          onclick="toggleAddForm()"
+          class="w-full bg-[#FFE066] hover:bg-[#FFD43B] active:scale-[0.99] text-[#4A3B00] border border-[#E6C23A] font-extrabold text-base py-3.5 px-5 rounded-2xl shadow-sm flex items-center justify-center gap-2 transition-all cursor-pointer"
+        >
+          <span id="toggleFormIcon">＋</span>
+          <span id="toggleFormText">나만의 찐맛집 추가하기</span>
+        </button>
+
+        <form
+          id="addForm"
+          onsubmit="addPlace(event)"
+          class="hidden mt-3 bg-white border border-[#F3E299] rounded-2xl p-5 sm:p-6 shadow-md animate-pop"
+        >
+          <h3 class="text-lg font-extrabold text-[#4A3B00] mb-4">📝 새로운 맛집 기록하기</h3>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+            <div>
+              <label for="placeName" class="block text-sm font-bold text-[#5C4B00] mb-1.5">식당 이름 <span class="text-amber-600">*</span></label>
+              <input
+                type="text"
+                id="placeName"
+                required
+                placeholder="예: 할머니 손칼국수"
+                class="w-full bg-[#FFFDF5] border border-[#EAD996] focus:border-[#D9B310] focus:bg-white focus:outline-none rounded-xl px-3.5 py-2.5 text-sm"
+              />
+            </div>
+
+            <div>
+              <label for="placeCategory" class="block text-sm font-bold text-[#5C4B00] mb-1.5">카테고리 <span class="text-amber-600">*</span></label>
+              <select
+                id="placeCategory"
+                class="w-full bg-[#FFFDF5] border border-[#EAD996] focus:border-[#D9B310] focus:bg-white focus:outline-none rounded-xl px-3.5 py-2.5 text-sm"
+              >
+                <option value="한식">한식</option>
+                <option value="일식">일식</option>
+                <option value="양식">양식</option>
+                <option value="카페·디저트">카페·디저트</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="placeMenu" class="block text-sm font-bold text-[#5C4B00] mb-1.5">대표 메뉴 <span class="text-amber-600">*</span></label>
+              <input
+                type="text"
+                id="placeMenu"
+                required
+                placeholder="예: 바지락 칼국수"
+                class="w-full bg-[#FFFDF5] border border-[#EAD996] focus:border-[#D9B310] focus:bg-white focus:outline-none rounded-xl px-3.5 py-2.5 text-sm"
+              />
+            </div>
+
+            <div>
+              <label for="placePrice" class="block text-sm font-bold text-[#5C4B00] mb-1.5">가격대</label>
+              <input
+                type="text"
+                id="placePrice"
+                placeholder="예: 8,000원대"
+                class="w-full bg-[#FFFDF5] border border-[#EAD996] focus:border-[#D9B310] focus:bg-white focus:outline-none rounded-xl px-3.5 py-2.5 text-sm"
+              />
+            </div>
+
+            <div>
+              <label for="placeRating" class="block text-sm font-bold text-[#5C4B00] mb-1.5">내 별점</label>
+              <select
+                id="placeRating"
+                class="w-full bg-[#FFFDF5] border border-[#EAD996] focus:border-[#D9B310] focus:bg-white focus:outline-none rounded-xl px-3.5 py-2.5 text-sm"
+              >
+                <option value="5">★★★★★ (5점 - 인생맛집)</option>
+                <option value="4">★★★★☆ (4점 - 추천함)</option>
+                <option value="3">★★★☆☆ (3점 - 무난함)</option>
+                <option value="2">★★☆☆☆ (2점 - 아쉬움)</option>
+                <option value="1">★☆☆☆☆ (1점 - 비추천)</option>
+              </select>
+            </div>
+
+            <div>
+              <span class="block text-sm font-bold text-[#5C4B00] mb-1.5">상황 태그 (중복 선택)</span>
+              <div class="flex flex-wrap gap-3 pt-1.5">
+                <label class="inline-flex items-center gap-1.5 text-sm text-[#5C4B00] cursor-pointer">
+                  <input type="checkbox" name="placeTags" value="혼밥" class="accent-[#D9B310] w-4 h-4 rounded" />
+                  <span>혼밥</span>
+                </label>
+                <label class="inline-flex items-center gap-1.5 text-sm text-[#5C4B00] cursor-pointer">
+                  <input type="checkbox" name="placeTags" value="가성비" class="accent-[#D9B310] w-4 h-4 rounded" />
+                  <span>가성비</span>
+                </label>
+                <label class="inline-flex items-center gap-1.5 text-sm text-[#5C4B00] cursor-pointer">
+                  <input type="checkbox" name="placeTags" value="분위기" class="accent-[#D9B310] w-4 h-4 rounded" />
+                  <span>분위기</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-5">
+            <label for="placeReview" class="block text-sm font-bold text-[#5C4B00] mb-1.5">솔직 한줄평 <span class="text-amber-600">*</span></label>
+            <input
+              type="text"
+              id="placeReview"
+              required
+              placeholder="예: 국물이 진하고 겉절이 김치가 정말 맛있어서 자주 가는 곳!"
+              class="w-full bg-[#FFFDF5] border border-[#EAD996] focus:border-[#D9B310] focus:bg-white focus:outline-none rounded-xl px-3.5 py-2.5 text-sm"
+            />
+          </div>
+
+          <div class="flex flex-col sm:flex-row gap-2.5">
+            <button
+              type="submit"
+              class="flex-1 bg-[#4A3B00] hover:bg-[#332900] text-[#FFFDF5] font-bold py-3 px-5 rounded-xl transition-colors cursor-pointer"
+            >
+              💾 맛집 저장하기
+            </button>
+            <button
+              type="button"
+              onclick="toggleAddForm()"
+              class="sm:w-32 bg-[#FFF3BF] hover:bg-[#FFE066] text-[#5C4B00] font-semibold py-3 px-4 rounded-xl transition-colors cursor-pointer"
+            >
+              취소
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- 저장된 맛집 리스트 헤더 -->
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg sm:text-xl font-extrabold text-[#4A3B00]">
+          저장된 맛집 <span id="placeCount" class="text-[#B8860B]">0</span>곳
+        </h2>
+        <button
+          type="button"
+          onclick="resetSampleData()"
+          class="text-xs text-[#8C7519] hover:text-[#4A3B00] underline cursor-pointer"
+        >
+          샘플 데이터 복원
+        </button>
+      </div>
+
+      <!-- 반응형 맛집 카드 그리드 (모바일 1열, 태블릿 2열, 데스크톱 3열) -->
+      <div
+        id="cardGrid"
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5"
+      ></div>
+    </section>
+
+  </main>
+
+  <!-- 안내 토스트 메시지 -->
+  <div
+    id="toast"
+    class="fixed bottom-5 left-1/2 -translate-x-1/2 bg-[#4A3B00] text-[#FFFDF5] text-sm font-medium px-5 py-3 rounded-full shadow-lg opacity-0 pointer-events-none transition-opacity duration-200 z-50"
+  >
+    알림 메시지
+  </div>
+
+  <!-- 삭제 / 복원 확인 모달 -->
+  <div
+    id="confirmModal"
+    class="hidden fixed inset-0 bg-black/35 backdrop-blur-[1px] flex items-center justify-center p-4 z-50"
+  >
+    <div class="bg-white border border-[#F3E299] rounded-2xl max-w-sm w-full p-6 shadow-xl animate-pop">
+      <h3 id="modalTitle" class="text-lg font-extrabold text-[#4A3B00] mb-2">맛집 기록 삭제</h3>
+      <p id="modalDesc" class="text-sm text-[#6E5900] mb-5">선택한 맛집 기록을 정말 삭제할까요?</p>
+      <div class="flex gap-2.5">
+        <button
+          type="button"
+          onclick="closeModal()"
+          class="flex-1 bg-[#FFF9DB] hover:bg-[#FFF3BF] text-[#5C4B00] font-semibold py-2.5 rounded-xl transition-colors cursor-pointer"
+        >
+          취소
+        </button>
+        <button
+          id="modalConfirmBtn"
+          type="button"
+          class="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-2.5 rounded-xl transition-colors cursor-pointer"
+        >
+          확인
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="text-center text-xs text-[#8C7519] py-6 border-t border-[#F3E299] mt-10 bg-[#FFFDF5]">
+    오늘 뭐 먹지? — 파스텔 옐로우 나만의 찐맛집 기록장
+  </footer>
+
+  <script>
+    const STORAGE_KEY = 'today_what_to_eat_pastel_v1';
+
+    // 초기 샘플 맛집 데이터 4곳
+    const SAMPLE_PLACES = [
+      {
+        id: 101,
+        name: '든든한 국밥집',
+        category: '한식',
+        menu: '순대국밥 특',
+        price: '9,000원',
+        rating: 5,
+        tags: ['혼밥', '가성비'],
+        review: '잡내 하나 없고 깍두기가 예술이라 시험기간마다 꼭 들르는 찐맛집'
+      },
+      {
+        id: 102,
+        name: '하루 돈카츠',
+        category: '일식',
+        menu: '등심 카츠 정식',
+        price: '12,000원',
+        rating: 5,
+        tags: ['혼밥', '분위기'],
+        review: '튀김옷이 바삭하고 육즙이 가득함. 1인석 자리가 잘 되어 있어 편함'
+      },
+      {
+        id: 103,
+        name: '골목 파스타',
+        category: '양식',
+        menu: '명란 크림 파스타',
+        price: '14,500원',
+        rating: 4,
+        tags: ['분위기'],
+        review: '조명이 따뜻해서 친구랑 수다 떨면서 먹기 딱 좋은 아늑한 파스타집'
+      },
+      {
+        id: 104,
+        name: '구름 로스터스',
+        category: '카페·디저트',
+        menu: '아인슈페너 & 휘낭시에',
+        price: '6,500원',
+        rating: 5,
+        tags: ['혼밥', '분위기'],
+        review: '크림이 쫀쫀하고 콘센트 좌석도 넉넉해서 노트북 작업할 때 최고'
+      }
+    ];
+
+    let places = [];
+    let currentMode = null; // 'random' | 'archive' | null
+    let activeCategory = '전체';
+    let activeTag = '전체';
+    let searchKeyword = '';
+
+    // 랜덤 뽑기 전용 필터 상태
+    let randomCategory = '전체';
+    let randomTag = '전체';
+
+    let pendingAction = null;
+
+    // 1. localStorage 로드 및 저장
+    function loadPlaces() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          places = JSON.parse(saved);
+        } else {
+          places = [...SAMPLE_PLACES];
+          savePlaces();
+        }
+      } catch (e) {
+        places = [...SAMPLE_PLACES];
+      }
+      updateWelcomeCount();
+    }
+
+    function savePlaces() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(places));
+      } catch (e) {
+        showToast('브라우저 저장 공간에 기록하지 못했습니다.');
+      }
+      updateWelcomeCount();
+    }
+
+    function updateWelcomeCount() {
+      const el = document.getElementById('welcomeTotalCount');
+      if (el) el.textContent = `${places.length}곳`;
+    }
+
+    // 2. 모드 전환 로직 (랜덤 뽑기 vs 나만의 찐맛집 기록장)
+    function switchMode(mode) {
+      currentMode = mode;
+
+      const welcomeView = document.getElementById('welcomeView');
+      const randomView = document.getElementById('randomView');
+      const archiveView = document.getElementById('archiveView');
+
+      const btnRandom = document.getElementById('modeBtnRandom');
+      const btnArchive = document.getElementById('modeBtnArchive');
+
+      welcomeView.classList.add('hidden');
+
+      const activeClass =
+        'flex items-center justify-center gap-2.5 py-4 px-5 rounded-2xl font-extrabold text-base sm:text-lg border-2 transition-all cursor-pointer shadow-md bg-[#FFE066] border-[#D9B310] text-[#4A3B00] scale-[1.01]';
+      const inactiveClass =
+        'flex items-center justify-center gap-2.5 py-4 px-5 rounded-2xl font-extrabold text-base sm:text-lg border-2 transition-all cursor-pointer shadow-sm bg-white border-[#F3D977] text-[#6E5900] hover:bg-[#FFF9DB]';
+
+      if (mode === 'random') {
+        randomView.classList.remove('hidden');
+        archiveView.classList.add('hidden');
+        btnRandom.className = activeClass;
+        btnArchive.className = inactiveClass;
+      } else if (mode === 'archive') {
+        archiveView.classList.remove('hidden');
+        randomView.classList.add('hidden');
+        btnArchive.className = activeClass;
+        btnRandom.className = inactiveClass;
+        renderPlaces();
+      }
+    }
+
+    // 3. 토스트 알림
+    let toastTimer = null;
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.classList.remove('opacity-0');
+      toast.classList.add('opacity-100');
+
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        toast.classList.remove('opacity-100');
+        toast.classList.add('opacity-0');
+      }, 2400);
+    }
+
+    // 4. 기록장 필터링 및 렌더링
+    function getFilteredPlaces() {
+      return places.filter((item) => {
+        const matchCategory = activeCategory === '전체' || item.category === activeCategory;
+        const matchTag = activeTag === '전체' || (Array.isArray(item.tags) && item.tags.includes(activeTag));
+        const keyword = searchKeyword.trim().toLowerCase();
+        const matchKeyword =
+          !keyword ||
+          item.name.toLowerCase().includes(keyword) ||
+          item.menu.toLowerCase().includes(keyword) ||
+          item.review.toLowerCase().includes(keyword);
+
+        return matchCategory && matchTag && matchKeyword;
+      });
+    }
+
+    function renderPlaces() {
+      const grid = document.getElementById('cardGrid');
+      const countEl = document.getElementById('placeCount');
+      const filtered = getFilteredPlaces();
+
+      countEl.textContent = filtered.length;
+      grid.innerHTML = '';
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full bg-white border border-dashed border-[#E6C23A] rounded-2xl p-10 text-center">
+            <p class="text-base font-extrabold text-[#4A3B00] mb-1">조건에 맞는 맛집이 아직 없어요 😢</p>
+            <p class="text-sm text-[#7A6500]">다른 카테고리를 선택하거나 나만의 찐맛집을 새롭게 추가해 보세요!</p>
+          </div>
+        `;
+        return;
+      }
+
+      filtered.forEach((place) => {
+        const stars = '★'.repeat(place.rating) + '☆'.repeat(5 - place.rating);
+        const tagsHtml = (place.tags || [])
+          .map(
+            (tag) =>
+              `<span class="bg-[#FFF3BF] text-[#5C4B00] text-xs font-bold px-2.5 py-1 rounded-full">#${escapeHtml(tag)}</span>`
+          )
+          .join('');
+
+        const mapUrl = `https://map.naver.com/p/search/${encodeURIComponent(place.name)}`;
+
+        const card = document.createElement('article');
+        card.className =
+          'bg-white border border-[#F3E299] rounded-2xl p-5 flex flex-col justify-between shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all';
+
+        card.innerHTML = `
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-2.5">
+              <span class="bg-[#FFF9DB] text-[#6E5900] border border-[#F3E299] text-xs font-bold px-2.5 py-1 rounded-lg">
+                ${escapeHtml(place.category)}
+              </span>
+              <button
+                type="button"
+                onclick="confirmDelete(${place.id})"
+                class="text-xs text-[#9E8A38] hover:text-red-500 px-2 py-1 rounded-lg transition-colors cursor-pointer"
+                aria-label="${escapeHtml(place.name)} 삭제"
+              >
+                삭제
+              </button>
+            </div>
+
+            <h3 class="text-lg font-extrabold text-[#4A3B00] mb-1">
+              ${escapeHtml(place.name)}
+            </h3>
+
+            <div class="text-amber-500 text-sm font-bold tracking-tight mb-3" aria-label="별점 ${place.rating}점">
+              ${stars} <span class="text-[#8C7519] font-normal text-xs ml-1">(${place.rating}.0)</span>
+            </div>
+
+            <div class="bg-[#FFFDF5] border border-[#F5E6A8] rounded-xl px-3.5 py-2.5 text-sm text-[#5C4B00] mb-3">
+              <span class="font-bold text-[#4A3B00]">대표메뉴:</span> ${escapeHtml(place.menu)}
+              ${place.price ? `<span class="text-[#8C7519] text-xs ml-1">(${escapeHtml(place.price)})</span>` : ''}
+            </div>
+
+            <p class="text-sm text-[#5C4B00] leading-relaxed mb-4">
+              "${escapeHtml(place.review)}"
+            </p>
+          </div>
+
+          <div>
+            <div class="flex flex-wrap gap-1.5 mb-3.5">
+              ${tagsHtml}
+            </div>
+
+            <a
+              href="${mapUrl}"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="block w-full text-center bg-[#FFF9DB] hover:bg-[#FFE066] text-[#4A3B00] border border-[#EAD996] text-sm font-bold py-2.5 rounded-xl transition-colors"
+            >
+              📍 네이버 지도 검색
+            </a>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    // 5. 맛집 추가 폼 제어
+    function toggleAddForm() {
+      const form = document.getElementById('addForm');
+      const icon = document.getElementById('toggleFormIcon');
+      const text = document.getElementById('toggleFormText');
+      const isHidden = form.classList.contains('hidden');
+
+      if (isHidden) {
+        form.classList.remove('hidden');
+        icon.textContent = '−';
+        text.textContent = '입력창 접기';
+      } else {
+        form.classList.add('hidden');
+        icon.textContent = '＋';
+        text.textContent = '나만의 찐맛집 추가하기';
+      }
+    }
+
+    function addPlace(event) {
+      event.preventDefault();
+
+      const name = document.getElementById('placeName').value.trim();
+      const category = document.getElementById('placeCategory').value;
+      const menu = document.getElementById('placeMenu').value.trim();
+      const price = document.getElementById('placePrice').value.trim();
+      const rating = Number(document.getElementById('placeRating').value);
+      const review = document.getElementById('placeReview').value.trim();
+
+      const tags = Array.from(document.querySelectorAll('input[name="placeTags"]:checked')).map(
+        (el) => el.value
+      );
+
+      if (!name || !menu || !review) {
+        showToast('필수 항목을 모두 입력해 주세요.');
+        return;
+      }
+
+      const newPlace = {
+        id: Date.now(),
+        name,
+        category,
+        menu,
+        price,
+        rating,
+        tags,
+        review
+      };
+
+      places.unshift(newPlace);
+      savePlaces();
+      renderPlaces();
+
+      document.getElementById('addForm').reset();
+      toggleAddForm();
+      showToast(`'${name}' 맛집이 저장되었습니다!`);
+    }
+
+    // 6. 삭제 및 샘플 복원 모달 제어
+    function confirmDelete(id) {
+      const target = places.find((p) => p.id === id);
+      if (!target) return;
+
+      document.getElementById('modalTitle').textContent = '맛집 기록 삭제';
+      document.getElementById('modalDesc').textContent = `'${target.name}' 기록을 목록에서 삭제할까요?`;
+      document.getElementById('modalConfirmBtn').textContent = '삭제하기';
+
+      pendingAction = () => {
+        places = places.filter((p) => p.id !== id);
+        savePlaces();
+        renderPlaces();
+        showToast('맛집 기록이 삭제되었습니다.');
+      };
+
+      document.getElementById('confirmModal').classList.remove('hidden');
+    }
+
+    function resetSampleData() {
+      document.getElementById('modalTitle').textContent = '샘플 데이터 복원';
+      document.getElementById('modalDesc').textContent = '기본 제공되는 4개의 예시 맛집 데이터를 다시 불러올까요?';
+      document.getElementById('modalConfirmBtn').textContent = '복원하기';
+
+      pendingAction = () => {
+        places = [...SAMPLE_PLACES];
+        savePlaces();
+        renderPlaces();
+        showToast('기본 샘플 맛집 데이터가 복원되었습니다.');
+      };
+
+      document.getElementById('confirmModal').classList.remove('hidden');
+    }
+
+    function closeModal() {
+      document.getElementById('confirmModal').classList.add('hidden');
+      pendingAction = null;
+    }
+
+    document.getElementById('modalConfirmBtn').addEventListener('click', () => {
+      if (typeof pendingAction === 'function') {
+        pendingAction();
+      }
+      closeModal();
+    });
+
+    // 7. 오늘의 맛집 랜덤 뽑기
+    function pickRandomPlace() {
+      if (places.length === 0) {
+        showToast('먼저 찐맛집 기록장에서 맛집을 등록해 주세요!');
+        return;
+      }
+
+      const filtered = places.filter((item) => {
+        const matchCat = randomCategory === '전체' || item.category === randomCategory;
+        const matchTag = randomTag === '전체' || (Array.isArray(item.tags) && item.tags.includes(randomTag));
+        return matchCat && matchTag;
+      });
+
+      if (filtered.length === 0) {
+        showToast('선택한 조건에 맞는 맛집이 없어요. 조건을 넓혀보세요!');
+        return;
+      }
+
+      const picked = filtered[Math.floor(Math.random() * filtered.length)];
+      const stars = '★'.repeat(picked.rating) + '☆'.repeat(5 - picked.rating);
+
+      document.getElementById('randomCategoryBadge').textContent = picked.category;
+      document.getElementById('randomName').textContent = picked.name;
+      document.getElementById('randomRating').textContent = `${stars} (${picked.rating}.0)`;
+      document.getElementById('randomMenu').textContent = `대표메뉴: ${picked.menu} ${picked.price ? `· ${picked.price}` : ''}`;
+      document.getElementById('randomReview').textContent = `"${picked.review}"`;
+      document.getElementById('randomMapLink').href = `https://map.naver.com/p/search/${encodeURIComponent(picked.name)}`;
+
+      const tagsContainer = document.getElementById('randomTags');
+      tagsContainer.innerHTML = (picked.tags || [])
+        .map((t) => `<span class="bg-white text-[#5C4B00] border border-[#EAD996] text-xs font-bold px-2.5 py-1 rounded-full">#${escapeHtml(t)}</span>`)
+        .join('');
+
+      const box = document.getElementById('randomResultBox');
+      box.classList.remove('hidden', 'animate-pop');
+      void box.offsetWidth;
+      box.classList.add('animate-pop');
+    }
+
+    // 8. 검색 및 필터 버튼 이벤트 바인딩
+    function handleSearch(val) {
+      searchKeyword = val;
+      const clearBtn = document.getElementById('clearSearchBtn');
+      if (val.trim().length > 0) {
+        clearBtn.classList.remove('hidden');
+      } else {
+        clearBtn.classList.add('hidden');
+      }
+      renderPlaces();
+    }
+
+    function clearSearch() {
+      const input = document.getElementById('searchInput');
+      input.value = '';
+      handleSearch('');
+      input.focus();
+    }
+
+    // 기록장 필터 버튼
+    document.querySelectorAll('.cat-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.cat-btn').forEach((b) => {
+          b.className = 'cat-btn bg-[#FFFDF5] hover:bg-[#FFF9DB] text-[#6E5900] border border-[#EAD996] font-medium text-sm px-4 py-2 rounded-full transition-all cursor-pointer';
+        });
+        btn.className = 'cat-btn bg-[#FFE066] text-[#4A3B00] border border-[#E6C23A] font-bold text-sm px-4 py-2 rounded-full transition-all cursor-pointer';
+        activeCategory = btn.dataset.cat;
+        renderPlaces();
+      });
+    });
+
+    document.querySelectorAll('.tag-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tag-btn').forEach((b) => {
+          b.className = 'tag-btn bg-[#FFFDF5] hover:bg-[#FFF9DB] text-[#6E5900] border border-[#EAD996] font-medium text-sm px-4 py-2 rounded-full transition-all cursor-pointer';
+        });
+        btn.className = 'tag-btn bg-[#FFE066] text-[#4A3B00] border border-[#E6C23A] font-bold text-sm px-4 py-2 rounded-full transition-all cursor-pointer';
+        activeTag = btn.dataset.tag;
+        renderPlaces();
+      });
+    });
+
+    // 랜덤 뽑기 필터 버튼
+    document.querySelectorAll('.rcat-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.rcat-btn').forEach((b) => {
+          b.className = 'rcat-btn bg-white hover:bg-[#FFF9DB] text-[#6E5900] border border-[#EAD996] font-medium text-sm px-3.5 py-1.5 rounded-full transition-all cursor-pointer';
+        });
+        btn.className = 'rcat-btn bg-[#FFE066] text-[#4A3B00] border border-[#E6C23A] font-bold text-sm px-3.5 py-1.5 rounded-full transition-all cursor-pointer';
+        randomCategory = btn.dataset.rcat;
+      });
+    });
+
+    document.querySelectorAll('.rtag-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.rtag-btn').forEach((b) => {
+          b.className = 'rtag-btn bg-white hover:bg-[#FFF9DB] text-[#6E5900] border border-[#EAD996] font-medium text-sm px-3.5 py-1.5 rounded-full transition-all cursor-pointer';
+        });
+        btn.className = 'rtag-btn bg-[#FFE066] text-[#4A3B00] border border-[#E6C23A] font-bold text-sm px-3.5 py-1.5 rounded-full transition-all cursor-pointer';
+        randomTag = btn.dataset.rtag;
+      });
+    });
+
+    // 초기화
+    window.addEventListener('DOMContentLoaded', () => {
+      loadPlaces();
+    });
+  </script>
+</body>
+</html>
