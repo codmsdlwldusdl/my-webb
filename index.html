@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>한눈 메모</title>
+  <style>
+    :root{color-scheme:light;--bg:#f8f9fa;--card:#fff;--border:#e2e8f0;--text:#1e293b;--muted:#64748b;--indigo:#4f46e5;--indigo-light:#eef2ff;--shadow:0 8px 24px rgba(15,23,42,.08)}
+    *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans KR",sans-serif}
+    button,input,textarea{font:inherit}button{cursor:pointer}.app{width:min(1180px,calc(100% - 40px));margin:0 auto;padding:34px 0 64px}
+    .topbar{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:28px}.brand h1{margin:0;font-size:25px;letter-spacing:-.7px}.brand p{margin:6px 0 0;color:var(--muted);font-size:13px}
+    .top-actions{display:flex;align-items:center;gap:14px}.search-wrap{position:relative;width:min(360px,42vw)}.search-wrap input{width:100%;height:42px;padding:0 14px 0 38px;border:1px solid var(--border);border-radius:11px;outline:none;background:#fff}.search-wrap input:focus,.composer textarea:focus,.tag-input:focus{border-color:var(--indigo);box-shadow:0 0 0 3px rgba(79,70,229,.1)}.search-icon{position:absolute;left:13px;top:50%;color:#94a3b8;transform:translateY(-50%);pointer-events:none}.count{white-space:nowrap;color:var(--muted);font-size:13px}.count strong{color:var(--text)}
+    .composer{padding:19px;border:1px solid var(--border);border-radius:16px;background:var(--card);box-shadow:0 2px 8px rgba(15,23,42,.025)}.composer textarea{display:block;width:100%;min-height:110px;padding:2px 0;resize:vertical;border:1px solid transparent;border-radius:8px;outline:none;color:var(--text);font-size:15px;line-height:1.65}.composer textarea::placeholder{color:#94a3b8}.composer-bottom{display:flex;align-items:center;gap:12px;padding-top:13px;border-top:1px solid #f1f5f9}.tag-input{flex:1;min-width:100px;height:38px;padding:0 11px;border:1px solid var(--border);border-radius:9px;outline:none;font-size:13px}.mode-switch{display:flex;padding:3px;border:1px solid var(--border);border-radius:10px;background:#f8fafc}.mode-btn{padding:7px 10px;border:0;border-radius:7px;background:transparent;color:var(--muted);font-size:12px;white-space:nowrap}.mode-btn.active{background:#fff;color:var(--indigo);box-shadow:0 1px 4px rgba(15,23,42,.1);font-weight:650}.save-btn,.cancel-btn{min-height:38px;padding:0 15px;border:0;border-radius:9px;font-size:13px;font-weight:650}.save-btn{background:var(--indigo);color:#fff;white-space:nowrap}.save-btn:hover:not(:disabled){background:#4338ca}.save-btn:disabled{cursor:not-allowed;opacity:.45}.cancel-btn{background:#f1f5f9;color:#475569}.composer-hint{margin:9px 0 0;color:#94a3b8;font-size:11px}.editing-created-at{margin:0 0 8px;color:var(--muted);font-size:12px}
+    .filters{display:flex;align-items:center;gap:8px;overflow-x:auto;padding:22px 0 18px;scrollbar-width:thin}.filter-chip{flex:0 0 auto;padding:7px 12px;border:1px solid var(--border);border-radius:999px;background:#fff;color:#475569;font-size:12px}.filter-chip.active{border-color:var(--indigo);background:var(--indigo);color:#fff}.section-label{display:flex;align-items:center;gap:7px;margin:12px 0;color:#475569;font-size:13px;font-weight:700}.section-label.regular{margin-top:24px}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:start;gap:16px}
+    .note-card{min-width:0;padding:16px;border:1px solid var(--border);border-radius:14px;background:var(--card);transition:box-shadow .18s ease,transform .18s ease,border-color .18s ease}.note-card:hover{transform:translateY(-2px);box-shadow:var(--shadow)}.note-card.pinned{border-color:#a5b4fc}.card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.card-date{padding-top:2px;color:#94a3b8;font-size:11px}.card-actions{display:flex;gap:2px;margin:-5px -5px 0 0}.icon-btn{display:grid;width:30px;height:30px;place-items:center;border:0;border-radius:7px;background:transparent;color:#94a3b8;font-size:15px}.icon-btn:hover,.icon-btn:focus-visible{background:#f1f5f9;color:#334155}.icon-btn:focus-visible,.filter-chip:focus-visible,.mode-btn:focus-visible,.save-btn:focus-visible,.cancel-btn:focus-visible{outline:2px solid var(--indigo);outline-offset:2px}.icon-btn.is-active{color:var(--indigo)}.card-content{margin:12px 0 14px;overflow-wrap:anywhere;white-space:pre-wrap;font-size:14px;line-height:1.7}.checklist{display:grid;gap:9px;margin:12px 0 14px}.check-item{display:flex;align-items:flex-start;gap:9px;overflow-wrap:anywhere;font-size:14px;line-height:1.55}.check-item input{flex:0 0 auto;width:16px;height:16px;margin:3px 0 0;accent-color:var(--indigo);cursor:pointer}.check-item.done .check-text{opacity:.6;text-decoration:line-through}.tags{display:flex;flex-wrap:wrap;gap:6px;padding-top:11px;border-top:1px solid #f1f5f9}.tag{padding:4px 8px;border-radius:999px;background:#f1f5f9;color:#64748b;font-size:11px}.empty-state{display:grid;min-height:245px;place-content:center;justify-items:center;padding:28px 16px;color:var(--muted);text-align:center}.empty-icon{margin-bottom:12px;font-size:34px}.empty-state p{margin:0;font-size:14px;line-height:1.7}.empty-reset{margin-top:14px;padding:7px 12px;border:1px solid var(--border);border-radius:8px;background:#fff;color:var(--indigo);font-size:12px}
+    @media(max-width:800px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.topbar{align-items:flex-start}.top-actions{flex-wrap:wrap;justify-content:flex-end}}
+    @media(max-width:580px){.app{width:min(100% - 28px,480px);padding-top:23px}.topbar{flex-direction:column;gap:15px}.top-actions{width:100%;justify-content:space-between}.search-wrap{width:auto;flex:1}.grid{grid-template-columns:1fr}.composer{padding:15px}.composer-bottom{flex-wrap:wrap}.tag-input{flex-basis:100%;order:0}.mode-switch{order:1}.save-btn,.cancel-btn{order:2;margin-left:auto}}
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div class="brand"><h1>한눈 메모</h1><p>떠오른 생각을 빠르게 기록하고, 쉽게 다시 찾아보세요.</p></div>
+      <div class="top-actions">
+        <label class="search-wrap"><span class="search-icon" aria-hidden="true">⌕</span><input id="searchInput" type="search" placeholder="내용 또는 #태그 검색..." aria-label="내용 또는 태그 검색"></label>
+        <div class="count" aria-live="polite">전체 <strong id="noteCount">0</strong>개</div>
+      </div>
+    </header>
+    <section class="composer" aria-label="빠른 메모 입력">
+      <p class="editing-created-at" id="editingCreatedAt" hidden></p>
+      <textarea id="bodyInput" placeholder="지금 떠오른 생각을 적어보세요..." aria-label="메모 내용"></textarea>
+      <div class="composer-bottom">
+        <input id="tagInput" class="tag-input" type="text" placeholder="#태그 입력 (쉼표 또는 공백으로 구분)" aria-label="태그 입력">
+        <div class="mode-switch" role="group" aria-label="메모 형식">
+          <button class="mode-btn active" type="button" data-mode="note" aria-pressed="true">일반 메모</button>
+          <button class="mode-btn" type="button" data-mode="checklist" aria-pressed="false">체크리스트</button>
+        </div>
+        <button class="cancel-btn" id="cancelButton" type="button" hidden>취소</button>
+        <button class="save-btn" id="saveButton" type="button" disabled>저장</button>
+      </div>
+      <p class="composer-hint">Ctrl+Enter 또는 ⌘+Enter로 저장할 수 있어요.</p>
+    </section>
+    <nav class="filters" id="filters" aria-label="태그 필터"></nav>
+    <section id="notesArea" aria-live="polite"></section>
+  </main>
+<script>
+(() => {
+  "use strict";
+  const STORAGE_KEY = "quick-notes-v1";
+  const bodyInput = document.getElementById("bodyInput");
+  const tagInput = document.getElementById("tagInput");
+  const saveButton = document.getElementById("saveButton");
+  const cancelButton = document.getElementById("cancelButton");
+  const searchInput = document.getElementById("searchInput");
+  const notesArea = document.getElementById("notesArea");
+  const filtersEl = document.getElementById("filters");
+  const countEl = document.getElementById("noteCount");
+  const createdAtEl = document.getElementById("editingCreatedAt");
+  const modeButtons = [...document.querySelectorAll(".mode-btn")];
+  let notes = loadNotes();
+  let selectedTag = "";
+  let editingId = null;
+  let mode = "note";
+
+  function loadNotes() {
+    try {
+      const value = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+      return Array.isArray(value) ? value.filter(n => n && typeof n === "object" && n.id) : [];
+    } catch { return []; }
+  }
+  function persist() { localStorage.setItem(STORAGE_KEY, JSON.stringify(notes)); }
+  function parseTags(value) {
+    return [...new Set(value.split(/[\s,，]+/).map(tag => tag.replace(/^#+/, "").trim()).filter(Boolean))];
+  }
+  function setMode(nextMode) {
+    mode = nextMode;
+    modeButtons.forEach(button => {
+      const active = button.dataset.mode === mode;
+      button.classList.toggle("active", active);
+      button.setAttribute("aria-pressed", String(active));
+    });
+    updateSaveState();
+  }
+  function updateSaveState() { saveButton.disabled = !bodyInput.value.trim(); }
+  function formatDate(value) {
+    return new Intl.DateTimeFormat("ko-KR", {year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false}).format(new Date(value));
+  }
+  function resetComposer() {
+    editingId = null;
+    bodyInput.value = "";
+    tagInput.value = "";
+    createdAtEl.hidden = true;
+    createdAtEl.textContent = "";
+    setMode("note");
+    saveButton.textContent = "저장";
+    cancelButton.hidden = true;
+    updateSaveState();
+  }
+  function saveNote() {
+    const content = bodyInput.value.trim();
+    if (!content) return;
+    const tags = parseTags(tagInput.value);
+    if (editingId) {
+      const note = notes.find(item => item.id === editingId);
+      if (!note) { resetComposer(); return; }
+      note.content = content;
+      note.tags = tags;
+      note.type = mode;
+      if (mode === "checklist") {
+        const old = new Map((note.items || []).map(item => [item.text, item.checked]));
+        note.items = content.split(/\n/).map(line => line.trim()).filter(Boolean).map(text => ({text, checked:old.get(text) || false}));
+        note.isChecked = note.items.length > 0 && note.items.every(item => item.checked);
+      } else { note.items = []; note.isChecked = false; }
+    } else {
+      const newNote = {id: crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`,createdAt:Date.now(),content,tags,isPinned:false,isChecked:false,type:mode,items:[]};
+      if (mode === "checklist") newNote.items = content.split(/\n/).map(line => line.trim()).filter(Boolean).map(text => ({text,checked:false}));
+      notes.unshift(newNote);
+    }
+    persist();
+    resetComposer();
+    render();
+    bodyInput.focus();
+  }
+  function startEdit(id) {
+    const note = notes.find(item => item.id === id);
+    if (!note) return;
+    editingId = id;
+    bodyInput.value = note.type === "checklist" ? (note.items || []).map(item => item.text).join("\n") : note.content;
+    tagInput.value = (note.tags || []).map(tag => `#${tag}`).join(" ");
+    setMode(note.type || "note");
+    createdAtEl.textContent = `작성 시각 · ${formatDate(note.createdAt)}`;
+    createdAtEl.hidden = false;
+    saveButton.textContent = "수정 저장";
+    cancelButton.hidden = false;
+    updateSaveState();
+    bodyInput.focus();
+    window.scrollTo({top:0,behavior:"smooth"});
+  }
+  function togglePin(id) {
+    const note = notes.find(item => item.id === id);
+    if (!note) return;
+    note.isPinned = !note.isPinned;
+    persist(); render();
+  }
+  function toggleChecklist(id) {
+    const note = notes.find(item => item.id === id);
+    if (!note) return;
+    if (note.type === "checklist") {
+      note.content = (note.items || []).map(item => item.text).join("\n");
+      note.items = []; note.type = "note"; note.isChecked = false;
+    } else {
+      const previous = new Map((note.items || []).map(item => [item.text,item.checked]));
+      note.items = note.content.split(/\n/).map(line => line.trim()).filter(Boolean).map(text => ({text,checked:previous.get(text)||false}));
+      note.content = note.items.map(item => item.text).join("\n");
+      note.type = "checklist";
+      note.isChecked = note.items.length > 0 && note.items.every(item => item.checked);
+    }
+    persist(); render();
+  }
+  function toggleItem(id,index,checked) {
+    const note = notes.find(item => item.id === id);
+    if (!note || note.type !== "checklist" || !note.items[index]) return;
+    note.items[index].checked = checked;
+    note.isChecked = note.items.length > 0 && note.items.every(item => item.checked);
+    persist(); render();
+  }
+  function deleteNote(id) {
+    if (!window.confirm("이 메모를 삭제할까요?")) return;
+    notes = notes.filter(note => note.id !== id);
+    if (editingId === id) resetComposer();
+    persist(); render();
+  }
+  function makeButton(text,className,action,label) {
+    const button = document.createElement("button");
+    button.type = "button"; button.className = className; button.textContent = text;
+    button.dataset.action = action; button.setAttribute("aria-label",label); button.title=label;
+    return button;
+  }
+  function renderFilters() {
+    const allTags = [...new Set(notes.flatMap(note => note.tags || []))].sort((a,b)=>a.localeCompare(b,"ko"));
+    filtersEl.replaceChildren();
+    const all = document.createElement("button");
+    all.type="button"; all.className=`filter-chip${selectedTag===""?" active":""}`; all.textContent="전체 보기";
+    all.setAttribute("aria-pressed",String(selectedTag===""));
+    all.addEventListener("click",()=>{selectedTag="";render();}); filtersEl.append(all);
+    allTags.forEach(tag=>{
+      const button=document.createElement("button");button.type="button";button.className=`filter-chip${selectedTag===tag?" active":""}`;button.textContent=`#${tag}`;button.setAttribute("aria-pressed",String(selectedTag===tag));
+      button.addEventListener("click",()=>{selectedTag=selectedTag===tag?"":tag;render();});filtersEl.append(button);
+    });
+  }
+  function createCard(note) {
+    const card=document.createElement("article");card.className=`note-card${note.isPinned?" pinned":""}`;card.dataset.id=note.id;
+    const top=document.createElement("div");top.className="card-top";
+    const time=document.createElement("time");time.className="card-date";time.dateTime=new Date(note.createdAt).toISOString();time.textContent=formatDate(note.createdAt);
+    const actions=document.createElement("div");actions.className="card-actions";
+    actions.append(makeButton("📌","icon-btn"+(note.isPinned?" is-active":""),"pin",note.isPinned?"고정 해제":"핀 고정"));
+    actions.append(makeButton("☑","icon-btn"+(note.type==="checklist"?" is-active":""),"convert","체크리스트 전환"));
+    actions.append(makeButton("✎","icon-btn","edit","수정"));
+    actions.append(makeButton("×","icon-btn","delete","삭제"));
+    top.append(time,actions);card.append(top);
+    if(note.type==="checklist"){
+      const list=document.createElement("div");list.className="checklist";
+      (note.items||[]).forEach((item,index)=>{
+        const label=document.createElement("label");label.className=`check-item${item.checked?" done":""}`;
+        const input=document.createElement("input");input.type="checkbox";input.checked=!!item.checked;input.dataset.action="item";input.dataset.index=String(index);input.setAttribute("aria-label",`${item.text} 완료`);
+        const text=document.createElement("span");text.className="check-text";text.textContent=item.text;label.append(input,text);list.append(label);
+      });card.append(list);
+    }else{const content=document.createElement("div");content.className="card-content";content.textContent=note.content;card.append(content);}
+    if(note.tags?.length){const tags=document.createElement("div");tags.className="tags";note.tags.forEach(value=>{const tag=document.createElement("span");tag.className="tag";tag.textContent=`#${value}`;tags.append(tag);});card.append(tags);}
+    return card;
+  }
+  function render() {
+    countEl.textContent=String(notes.length);renderFilters();
+    const query=searchInput.value.trim().replace(/^#+/,"").toLocaleLowerCase("ko");
+    const filtered=notes.filter(note=>{
+      const matchesTag=!selectedTag||(note.tags||[]).includes(selectedTag);
+      const searchable=`${note.content||""} ${(note.tags||[]).join(" ")} ${(note.items||[]).map(item=>item.text).join(" ")}`.toLocaleLowerCase("ko");
+      return matchesTag&&(!query||searchable.includes(query));
+    }).sort((a,b)=>Number(!!b.isPinned)-Number(!!a.isPinned)||b.createdAt-a.createdAt);
+    notesArea.replaceChildren();
+    if(!filtered.length){
+      const empty=document.createElement("div");empty.className="empty-state";
+      const icon=document.createElement("div");icon.className="empty-icon";icon.setAttribute("aria-hidden","true");icon.textContent=notes.length?"⌕":"✎";
+      const message=document.createElement("p");message.innerHTML=notes.length?"조건에 맞는 메모가 없습니다.<br>검색어나 태그 필터를 바꿔 보세요.":"아직 작성된 메모가 없습니다.<br>첫 아이디어를 기록해 보세요!";
+      empty.append(icon,message);
+      if(notes.length){const reset=document.createElement("button");reset.className="empty-reset";reset.type="button";reset.textContent="검색·필터 초기화";reset.addEventListener("click",()=>{searchInput.value="";selectedTag="";render();});empty.append(reset);}
+      notesArea.append(empty);return;
+    }
+    const pinned=filtered.filter(note=>note.isPinned),regular=filtered.filter(note=>!note.isPinned);
+    if(pinned.length){const title=document.createElement("h2");title.className="section-label";title.textContent="📌 고정된 메모";const grid=document.createElement("div");grid.className="grid";pinned.forEach(note=>grid.append(createCard(note)));notesArea.append(title,grid);}
+    if(regular.length){if(pinned.length){const title=document.createElement("h2");title.className="section-label regular";title.textContent="메모";notesArea.append(title);}const grid=document.createElement("div");grid.className="grid";regular.forEach(note=>grid.append(createCard(note)));notesArea.append(grid);}
+  }
+  modeButtons.forEach(button=>button.addEventListener("click",()=>setMode(button.dataset.mode)));
+  bodyInput.addEventListener("input",updateSaveState);
+  bodyInput.addEventListener("keydown",event=>{if(event.key==="Enter"&&(event.ctrlKey||event.metaKey)){event.preventDefault();saveNote();}});
+  saveButton.addEventListener("click",saveNote);cancelButton.addEventListener("click",resetComposer);searchInput.addEventListener("input",render);
+  notesArea.addEventListener("click",event=>{const button=event.target.closest("button[data-action]");if(!button)return;const card=button.closest(".note-card");if(!card)return;const id=card.dataset.id;switch(button.dataset.action){case"pin":togglePin(id);break;case"convert":toggleChecklist(id);break;case"edit":startEdit(id);break;case"delete":deleteNote(id);break;}});
+  notesArea.addEventListener("change",event=>{const input=event.target.closest('input[data-action="item"]');if(!input)return;const card=input.closest(".note-card");toggleItem(card.dataset.id,Number(input.dataset.index),input.checked);});
+  render();
+})();
+</script>
+</body>
+</html>
